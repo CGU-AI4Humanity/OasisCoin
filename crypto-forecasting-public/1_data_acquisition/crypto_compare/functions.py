@@ -6,8 +6,8 @@ import pandas as pd
 
 url = 'https://min-api.cryptocompare.com/data/'
 
-api_key = '<API_KEY>'
-auth_key = '<AUTH_KEY>'
+api_key = '0cf67c2230212c895533d60de4c6877c096157f5521cab7a318e37bff48263e5'
+auth_key = '0cf67c2230212c895533d60de4c6877c096157f5521cab7a318e37bff48263e5'
 
 
 def get_data(feature: str,

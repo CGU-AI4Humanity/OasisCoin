@@ -1,10 +1,7 @@
-''' Script to download BTC and ETH historical data from the cryptocompare API. '''
+''' Script to download Bitcoin (BTC) historical data from the cryptocompare API. '''
 
 import pandas as pd
 from functions import auth_key, get_data, get_balance_data
-
-btc_id = 1182
-eth_id = 7605
 
 if __name__=='__main__':
 
@@ -22,13 +19,13 @@ if __name__=='__main__':
                     'btc_price_conversionSymbol']
     prefix = 'btc_price_'
 
-    btc_price = get_data(feature, params, prefix).drop(columns=drop_columns)
+    btc_price = get_data(feature, params, 'btc', prefix).drop(columns=drop_columns)
     
     #--------------------------------------------------------------------------
 
     # get (todays) aggregated exchange volume for various currencies
     feature = 'histoday'
-    currencies = ['EUR', 'USD', 'ETH']
+    currencies = ['EUR', 'USD']
     btc_currency_vol = pd.DataFrame()
 
     for i in currencies:
@@ -41,7 +38,7 @@ if __name__=='__main__':
                         prefix + 'close',
                         prefix + 'conversionType',
                         prefix + 'conversionSymbol']
-        data = get_data(feature, params, prefix).drop(columns=drop_columns)
+        data = get_data(feature, params, 'btc', prefix).drop(columns=drop_columns)
         btc_currency_vol = pd.concat([data, btc_currency_vol], axis=1)
 
     #--------------------------------------------------------------------------
@@ -56,163 +53,97 @@ if __name__=='__main__':
                 'tsym': 'EUR',
                 'e': i}
         prefix = 'btc_exchange_' + i + '_'
-        data = get_data(feature, params, prefix)
+        data = get_data(feature, params, 'btc', prefix)
         btc_exchange_vol = pd.concat([data, btc_exchange_vol], axis=1)
         
     #--------------------------------------------------------------------------
 
-    # get (yesterdays) blockchain data
-    feature = 'blockchain/histo/day'
-    params = {'fsym': 'BTC',
-              'auth_key': auth_key}
-    drop_columns = ['btc_id', 'btc_symbol']
+    # get (yesterdays) blockchain data (requires paid API key)
+    btc_blockchain = None
+    try:
+        feature = 'blockchain/histo/day'
+        params = {'fsym': 'BTC',
+                  'auth_key': auth_key}
+        drop_columns = ['btc_id', 'btc_symbol']
 
-    btc_blockchain = (get_data(feature, params, 'btc_', itype=1)
-                      .drop(columns=drop_columns))
-    btc_blockchain.loc[max(btc_blockchain.index)+86400, :] = None
-    btc_blockchain = btc_blockchain.shift(1)
+        btc_blockchain = (get_data(feature, params, 'btc', 'btc_', itype=1)
+                          .drop(columns=drop_columns))
+        btc_blockchain.loc[max(btc_blockchain.index)+86400, :] = None
+        btc_blockchain = btc_blockchain.shift(1)
+        print("✓ Blockchain data fetched successfully")
+    except Exception as e:
+        print(f"⚠ Blockchain data skipped (requires paid API key): {e}")
 
     # --------------------------------------------------------------------------
 
-    # get (yesterdays) balance data
-    feature = 'blockchain/balancedistribution/histo/day'
-    params = {'fsym': 'BTC',
-              'auth_key': auth_key}
-    prefix = 'btc_balance_distribution_'
+    # get (yesterdays) balance data (requires paid API key)
+    balances = None
+    try:
+        feature = 'blockchain/balancedistribution/histo/day'
+        params = {'fsym': 'BTC',
+                  'auth_key': auth_key}
+        prefix = 'btc_balance_distribution_'
 
-    balances = get_balance_data(feature, params, prefix)
-    balances.loc[max(balances.index)+86400, :] = None
-    balances = balances.shift(1)
+        balances = get_balance_data(feature, params, prefix)
+        balances.loc[max(balances.index)+86400, :] = None
+        balances = balances.shift(1)
+        print("✓ Balance distribution data fetched successfully")
+    except Exception as e:
+        print(f"⚠ Balance distribution data skipped (requires paid API key): {e}")
 
     #------------------------------------------------------------------------------
 
     # concatenate all dataframes into one and save
     dataframes = [btc_price,
                   btc_currency_vol,
-                  btc_exchange_vol,
-                  btc_blockchain,
-                  balances]
+                  btc_exchange_vol]
+    
+    # Add optional data if available
+    if btc_blockchain is not None:
+        dataframes.append(btc_blockchain)
+    if balances is not None:
+        dataframes.append(balances)
 
     btc_data = pd.concat(dataframes, axis=1).sort_index()
     btc_data.to_parquet('btc_data.parquet.gzip', compression='gzip')
 
-
-    # --------------------------------------------------------------------------
-    # Fetch Ethereum (ETH) data
-    # --------------------------------------------------------------------------
-
-    # get (todays) price data
-    feature = 'histoday'
-    params = {'fsym': 'ETH',
-              'tsym': 'EUR'}
-    drop_columns = ['eth_price_volumefrom',
-                    'eth_price_volumeto',
-                    'eth_price_conversionType',
-                    'eth_price_conversionSymbol']
-    prefix = 'eth_price_'
-
-    eth_price = get_data(feature, params, 'eth',
-                         prefix).drop(columns=drop_columns)
-    
-    #--------------------------------------------------------------------------
-
-    # get (todays) aggregated exchange volume for various currencies
-    feature = 'histoday'
-    currencies = ['EUR', 'USD', 'BTC']
-    eth_currency_vol = pd.DataFrame()
-
-    for i in currencies:
-        params = {'fsym': 'ETH',
-                  'tsym': i}
-        prefix = 'eth_' + i + '_'
-        drop_columns = [prefix + 'high',
-                        prefix + 'low',
-                        prefix + 'open',
-                        prefix + 'close',
-                        prefix + 'conversionType',
-                        prefix + 'conversionSymbol']
-        data = get_data(feature, params, 'eth', prefix).drop(columns=drop_columns)
-        eth_currency_vol = pd.concat([data, eth_currency_vol], axis=1)
+    print("=" * 60)
+    print("Bitcoin data acquisition complete!")
+    print(f"Saved {len(btc_data)} data points to btc_data.parquet.gzip")
+    print("=" * 60)
 
     #--------------------------------------------------------------------------
-
-    # get (todays) disaggregated exchange volume
-    exchanges = ('Binance', 'BTSE', 'Coinbase', 'Kraken', 'Bitfinex')
-    eth_exchange_vol = pd.DataFrame()
-
-    for i in exchanges:
-        feature = 'exchange/symbol/histoday'
-        params = {'fsym': 'ETH',
-                  'tsym': 'EUR',
-                  'e': i}
-        prefix = 'eth_exchange_' + i + '_'
-        data = get_data(feature, params, 'eth', prefix)
-        eth_exchange_vol = pd.concat([data, eth_exchange_vol], axis=1)
-        
-    #--------------------------------------------------------------------------
-
-    # get (yesterdays) blockchain data
-    feature = 'blockchain/histo/day'
-    params = {'fsym': 'ETH',
-              'auth_key': auth_key}
-    drop_columns = ['eth_id', 'eth_symbol']
-
-    eth_blockchain = (get_data(feature, params, 'eth', 'eth_', itype=1)
-                      .drop(columns=drop_columns))
-    eth_blockchain.loc[max(eth_blockchain.index)+86400, :] = None
-    eth_blockchain = eth_blockchain.shift(1)
-
-    #------------------------------------------------------------------------------
-
-    # get (yesterdays) staking rate
-    feature = 'blockchain/staking/histoday'
-    params = {'fsym': 'ETH',
-              'auth_key': auth_key}
-    prefix = 'eth_staking_'
-    drop_columns = ['eth_staking_issued_ts', 'eth_staking_issued_date']
-
-    eth_staking_rate = (get_data(feature, params, 'eth', prefix, itype=1)
-                        .drop(columns=drop_columns))
-    eth_staking_rate.loc[max(eth_staking_rate.index)+86400, :] = None
-    eth_staking_rate = eth_staking_rate.shift(1)
-
-    #------------------------------------------------------------------------------
-
-    # concatenate all dataframes into one and save
-    dataframes = [eth_price,
-                  eth_currency_vol,
-                  eth_exchange_vol,
-                  eth_blockchain,
-                  eth_staking_rate]
-
-    eth_data = pd.concat(dataframes, axis=1).sort_index()
-    eth_data.to_parquet('eth_data.parquet.gzip', compression='gzip')
-
-
-    #--------------------------------------------------------------------------
-    # Fetch crypto index data
+    # Fetch crypto index data (requires paid API key)
     #--------------------------------------------------------------------------
 
     # get daily crypto indices
-    index_names = ('MVDA', 'MVDALC', 'MVDAMC', 'MVDASC')
-    indices = pd.DataFrame()
+    try:
+        index_names = ('MVDA', 'MVDALC', 'MVDAMC', 'MVDASC')
+        indices = pd.DataFrame()
 
-    for i in index_names:
-        feature = 'index/histo/day'
-        params = {'indexName': i,
-                  'auth_key': auth_key}
-        prefix = 'index_' + i + '_'
-        indices = pd.concat(
-            [get_data(feature, params, prefix), indices], axis=1)
+        for i in index_names:
+            feature = 'index/histo/day'
+            params = {'indexName': i,
+                      'auth_key': auth_key}
+            prefix = 'index_' + i + '_'
+            indices = pd.concat(
+                [get_data(feature, params, 'btc', prefix), indices], axis=1)
 
-    indices.sort_index().to_parquet('indices_data.parquet.gzip', compression='gzip')
+        indices.sort_index().to_parquet('indices_data.parquet.gzip', compression='gzip')
+        print("✓ Crypto indices data fetched successfully")
+    except Exception as e:
+        print(f"⚠ Crypto indices data skipped (requires paid API key): {e}")
 
     # get hourly BTC volatility data
-    feature = 'index/histo/hour'
-    params = {'indexName': 'BVIN',
-              'auth_key': auth_key}
-    prefix = 'btc_volatility_index_'
+    try:
+        feature = 'index/histo/hour'
+        params = {'indexName': 'BVIN',
+                  'auth_key': auth_key}
+        prefix = 'btc_volatility_index_'
 
-    btc_volatility = get_data(feature, params, prefix)
-    btc_volatility.to_parquet(
-        'btc_volatility_hourly.parquet.gzip', compression='gzip')
+        btc_volatility = get_data(feature, params, 'btc', prefix)
+        btc_volatility.to_parquet(
+            'btc_volatility_hourly.parquet.gzip', compression='gzip')
+        print("✓ BTC volatility index data fetched successfully")
+    except Exception as e:
+        print(f"⚠ BTC volatility index data skipped (requires paid API key): {e}")
