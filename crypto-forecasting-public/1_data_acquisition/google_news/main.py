@@ -4,26 +4,27 @@ import sys
 sys.path.append('../../')
 
 from functions import get_data
-from utils.telegram import sendMessage
-
 
 if __name__ == '__main__':
 
-    try:
-        btc_news_data = get_data('BTC')
-        btc_news_data.to_parquet(
-            'btc_news_data.parquet.gzip', compression='gzip')
-        sendMessage('Bitcoin news data successfully scraped \U0001F389 \U0001F389')
-    except Exception as e:
-        sendMessage('Error raised during bitcoin news data scraping \U0001F614')
-        print('Error raised during bitcoin news data scraping: ', e)
+    print("=" * 60)
+    print("Google News Data Acquisition - Bitcoin")
+    print("=" * 60)
+    print("\nThis will fetch Bitcoin news from 2017-10-01 to today")
+    print("It may take a while as it processes each day...\n")
+    print("Progress is being logged to google_news.log\n")
 
     try:
-        eth_news_data = get_data('ETH')
-        eth_news_data.to_parquet(
-            'eth_news_data.parquet.gzip', compression='gzip')
-        sendMessage('Ethereum news data successfully scraped \U0001F389 \U0001F389')
+        print("Fetching Bitcoin news data...")
+        btc_news_data = get_data('2017-10-01')
+        btc_news_data.to_parquet(
+            'btc_news_data.parquet.gzip', compression='gzip')
+        print(f"✓ Saved {len(btc_news_data)} unique Bitcoin news articles")
+        print(f"  (Duplicates removed during processing)")
     except Exception as e:
-        sendMessage(
-            'Error raised during ethereum news data scraping \U0001F614')
-        print('Error raised during ethereum news data scraping: ', e)
+        print('❌ Error raised during bitcoin news data scraping: ', e)
+        raise
+
+    print("\n" + "=" * 60)
+    print("✅ Data acquisition complete!")
+    print("=" * 60)
