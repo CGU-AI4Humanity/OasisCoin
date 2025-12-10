@@ -4,20 +4,21 @@
 **Group 4 - Claremont Graduate University**
 
 ---
+
 ## Table of Contents
 
-1. [Environment Setup](#environment-setup)
-2. [Data Collection](#data-collection)
-3. [Data Preprocessing](#data-preprocessing)
-4. [Exploratory Data Analysis](#exploratory-data-analysis)
-5. [Sentiment Analysis](#sentiment-analysis)
-6. [Topic Modeling](#topic-modeling)
-7. [Feature Engineering](#feature-engineering)
-8. [Model Training](#model-training)
-9. [Model Evaluation](#model-evaluation)
-10. [Trading Simulation](#trading-simulation)
-11. [Results Analysis](#results-analysis)
-12. [Troubleshooting](#troubleshooting)
+1. [Environment Setup](#1-environment-setup)
+2. [Data Collection](#2-data-collection)
+3. [Data Preprocessing](#3-data-preprocessing)
+4. [Exploratory Data Analysis](#4-exploratory-data-analysis)
+5. [Sentiment Analysis](#5-sentiment-analysis)
+6. [Topic Modeling](#6-topic-modeling)
+7. [Feature Engineering](#7-feature-engineering)
+8. [Model Training](#8-model-training)
+9. [Model Evaluation](#9-model-evaluation)
+10. [Trading Simulation](#10-trading-simulation)
+11. [Results Analysis](#11-results-analysis)
+12. [Troubleshooting](#12-troubleshooting)
 
 ---
 
@@ -30,7 +31,7 @@ Before starting, ensure you have:
 - Approximately 4-5 GB of free disk space
 - API keys for:
   - NewsAPI (https://newsapi.org/) - Free tier available
-  - PRAW Reddit API (https://www.reddit.com/prefs/apps) - Free tier available
+  - PRAW Reddit API (https://www.reddit.com/prefs/apps) - Free tier available; for our project we used a curated data set
   - Binance API (optional, free for data collection)
 
 ### Step 1.2: Clone Repository
@@ -42,16 +43,18 @@ cd OasisCoin/oasis_coin_final
 
 ### Step 1.3: Create Virtual Environment
 
-**On macOS/Linux:**
+On macOS/Linux:
+
 ```bash
 python3 -m venv oasis_env
 source oasis_env/bin/activate
 ```
 
-**On Windows:**
+On Windows:
+
 ```bash
 python -m venv oasis_env
-oasis_env\\Scripts\\activate
+oasis_env\Scripts\activate
 ```
 
 ### Step 1.4: Install Dependencies
@@ -61,7 +64,8 @@ pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-**Manual installation:**
+Manual installation:
+
 ```bash
 # Core data science
 pip install numpy==1.26.4
@@ -117,7 +121,7 @@ import nltk
 from textblob import TextBlob
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
-print("âœ“ All packages installed successfully!")
+print("All packages installed successfully!")
 print(f"  - pandas: {pd.__version__}")
 print(f"  - numpy: {np.__version__}")
 print(f"  - scikit-learn: {sklearn.__version__}")
@@ -130,10 +134,9 @@ print(f"  - xgboost: {xgboost.__version__}")
 
 ### Step 2.1: Set Up API Credentials
 
-Create a `.env` file in your project directory:
+Create a .env file in your project directory:
 
 ```bash
-# .env file (DO NOT commit to GitHub)
 NEWSAPI_KEY=your_newsapi_key_here
 REDDIT_CLIENT_ID=your_reddit_client_id_here
 REDDIT_CLIENT_SECRET=your_reddit_client_secret_here
@@ -142,11 +145,11 @@ BINANCE_API_KEY=your_binance_api_key_here
 BINANCE_API_SECRET=your_binance_api_secret_here
 ```
 
-**Obtaining API Keys:**
+Obtaining API Keys:
 
-1. **NewsAPI**: https://newsapi.org/ â†’ Sign up â†’ Copy API key â†’ Free: 100 requests/day
-2. **Reddit PRAW**: https://www.reddit.com/prefs/apps â†’ Create app (script) â†’ Copy ID/Secret
-3. **Binance**: https://www.binance.com/ â†’ Account â†’ API Management â†’ Create key
+1. NewsAPI: https://newsapi.org/ - Sign up, copy API key, Free tier: 100 requests/day
+2. Reddit PRAW: https://www.reddit.com/prefs/apps - Create app (script), copy ID/Secret
+3. Binance: https://www.binance.com/ - Account, API Management, create key
 
 ### Step 2.2: Load API Credentials
 
@@ -175,7 +178,7 @@ reddit = praw.Reddit(
 )
 binance_client = Client(BINANCE_API_KEY, BINANCE_API_SECRET)
 
-print("âœ“ API credentials loaded successfully")
+print("API credentials loaded successfully")
 ```
 
 ### Step 2.3: Collect Google News Articles
@@ -197,9 +200,8 @@ all_articles = []
 page = 1
 max_pages = 100
 
-print(f"Searching for: '{SEARCH_QUERY}'")
+print(f"Searching for: {SEARCH_QUERY}")
 print(f"Date range: {START_DATE} to {END_DATE}")
-print(f"Collecting articles...")
 
 try:
     while page <= max_pages:
@@ -242,7 +244,7 @@ news_df['publishedAt'] = pd.to_datetime(news_df['publishedAt'])
 news_df = news_df.drop_duplicates(subset=['title'])
 news_df = news_df.sort_values('publishedAt')
 
-print(f"\nâœ“ Collected {len(news_df)} unique articles")
+print(f"\nCollected {len(news_df)} unique articles")
 news_df.to_csv('data/initial_datasets/google_news_bitcoin_2024_raw.csv', index=False)
 ```
 
@@ -282,7 +284,7 @@ for subreddit_name in subreddits:
 reddit_df = pd.DataFrame(reddit_comments)
 reddit_df = reddit_df.drop_duplicates(subset=['comment_id'])
 
-print(f"\nâœ“ Collected {len(reddit_df)} unique comments")
+print(f"\nCollected {len(reddit_df)} unique comments")
 reddit_df.to_csv('data/initial_datasets/reddit_bitcoin_comments_raw.csv', index=False)
 ```
 
@@ -324,12 +326,11 @@ try:
             }
             for candle in candles
         ])
-        print(f"âœ“ Downloaded {len(price_df)} candles")
+        print(f"Downloaded {len(price_df)} candles")
 except Exception as e:
     print(f"Error: {e}")
 
 price_df.to_csv('data/initial_datasets/binance_btc_prices_2024_raw.csv', index=False)
-print("âœ“ Price data saved")
 ```
 
 ---
@@ -354,9 +355,9 @@ news_df['publishedAt'] = pd.to_datetime(news_df['publishedAt'])
 reddit_df['created_utc'] = pd.to_datetime(reddit_df['created_utc'])
 price_df['date'] = pd.to_datetime(price_df['date'])
 
-print(f"âœ“ Google News: {len(news_df)} records")
-print(f"âœ“ Reddit: {len(reddit_df)} records")
-print(f"âœ“ Price: {len(price_df)} records")
+print(f"Google News: {len(news_df)} records")
+print(f"Reddit: {len(reddit_df)} records")
+print(f"Price: {len(price_df)} records")
 ```
 
 ### Step 3.2: Text Preprocessing
@@ -406,8 +407,8 @@ reddit_df['body_tokens'] = reddit_df['body'].apply(preprocess_text)
 reddit_df['body_clean'] = reddit_df['body_tokens'].apply(lambda x: ' '.join(x))
 reddit_df = reddit_df[reddit_df['body_clean'].str.len() > 0]
 
-print(f"âœ“ News: {len(news_df)} records, Avg tokens: {news_df['title_tokens'].apply(len).mean():.1f}")
-print(f"âœ“ Reddit: {len(reddit_df)} records, Avg tokens: {reddit_df['body_tokens'].apply(len).mean():.1f}")
+print(f"News: {len(news_df)} records")
+print(f"Reddit: {len(reddit_df)} records")
 
 news_df.to_parquet('data/processed/google_news_preprocessed.parquet.gzip', compression='gzip', index=False)
 reddit_df.to_parquet('data/processed/reddit_comments_preprocessed.parquet.gzip', compression='gzip', index=False)
@@ -441,22 +442,6 @@ print("\nPRICE STATISTICS:")
 print(f"Start: ${price_df['close'].iloc[0]:.2f}")
 print(f"End: ${price_df['close'].iloc[-1]:.2f}")
 print(f"Return: {((price_df['close'].iloc[-1] / price_df['close'].iloc[0]) - 1) * 100:.2f}%")
-
-# Optional: Create visualizations
-import matplotlib.pyplot as plt
-
-fig, axes = plt.subplots(2, 1, figsize=(14, 8))
-news_daily.plot(ax=axes[0], title='Google News Articles per Day', color='steelblue')
-axes[0].set_ylabel('Count')
-axes[0].grid(alpha=0.3)
-
-reddit_daily.plot(ax=axes[1], title='Reddit Comments per Day', color='darkorange')
-axes[1].set_ylabel('Count')
-axes[1].grid(alpha=0.3)
-
-plt.tight_layout()
-plt.savefig('results/temporal_distribution.png', dpi=150)
-print("\nâœ“ Temporal plot saved")
 ```
 
 ---
@@ -485,7 +470,7 @@ reddit_df['textblob_polarity'] = reddit_df['body'].apply(lambda x: TextBlob(str(
 vader_scores_reddit = reddit_df['body'].apply(lambda x: analyzer.polarity_scores(str(x)))
 reddit_df['vader_compound'] = vader_scores_reddit.apply(lambda x: x['compound'])
 
-print("âœ“ Sentiment analysis complete")
+print("Sentiment analysis complete")
 ```
 
 ### Step 5.2: Classify Sentiments
@@ -534,7 +519,7 @@ price_df['date'] = pd.to_datetime(price_df['date']).dt.date
 news_sentiment_price = news_daily_sentiment.reset_index().merge(price_df, on='date', how='inner')
 reddit_sentiment_price = reddit_daily_sentiment.reset_index().merge(price_df, on='date', how='inner')
 
-print(f"âœ“ Merged: News {len(news_sentiment_price)} days, Reddit {len(reddit_sentiment_price)} days")
+print(f"Merged: News {len(news_sentiment_price)} days, Reddit {len(reddit_sentiment_price)} days")
 
 news_sentiment_price.to_parquet('data/processed/news_price_merged.parquet.gzip', compression='gzip', index=False)
 reddit_sentiment_price.to_parquet('data/processed/reddit_price_merged.parquet.gzip', compression='gzip', index=False)
@@ -562,10 +547,10 @@ print("Vectorizing Reddit...")
 reddit_tfidf = TfidfVectorizer(max_features=200, min_df=10, max_df=0.8).fit_transform(reddit_df['body_clean'])
 reddit_count = CountVectorizer(max_features=200, min_df=10, max_df=0.8).fit_transform(reddit_df['body_clean'])
 
-print(f"âœ“ News TF-IDF: {news_tfidf.shape}, Reddit TF-IDF: {reddit_tfidf.shape}")
+print(f"News TF-IDF: {news_tfidf.shape}, Reddit TF-IDF: {reddit_tfidf.shape}")
 ```
 
-### Step 6.2: Train LDA & NMF
+### Step 6.2: Train LDA and NMF
 
 ```python
 print("\nTraining LDA models...")
@@ -582,18 +567,7 @@ nmf_news_topics = nmf_news.fit_transform(news_tfidf)
 nmf_reddit = NMF(n_components=8, random_state=42, max_iter=500, init='nndsvd')
 nmf_reddit_topics = nmf_reddit.fit_transform(reddit_tfidf)
 
-print("âœ“ Topic models trained")
-
-# Display topics
-def display_topics(model, vectorizer, n_words=10):
-    feature_names = vectorizer.get_feature_names_out()
-    for topic_idx, topic in enumerate(model.components_):
-        top_indices = topic.argsort()[-n_words:][::-1]
-        top_words = [feature_names[i] for i in top_indices]
-        print(f"Topic {topic_idx + 1}: {', '.join(top_words)}")
-
-print("\nGoogle News LDA Topics:")
-display_topics(lda_news, news_count_vectorizer)
+print("Topic models trained")
 ```
 
 ---
@@ -638,7 +612,7 @@ news_sentiment_price = engineer_temporal_features(news_sentiment_price)
 reddit_sentiment_price = engineer_price_features(reddit_sentiment_price)
 reddit_sentiment_price = engineer_temporal_features(reddit_sentiment_price)
 
-print("âœ“ Features created")
+print("Features created")
 
 news_sentiment_price.to_parquet('data/processed/news_price_engineered.parquet.gzip', compression='gzip', index=False)
 reddit_sentiment_price.to_parquet('data/processed/reddit_price_engineered.parquet.gzip', compression='gzip', index=False)
@@ -690,7 +664,7 @@ scaler_reddit = StandardScaler()
 X_reddit_train_scaled = scaler_reddit.fit_transform(X_reddit_train)
 X_reddit_test_scaled = scaler_reddit.transform(X_reddit_test)
 
-print(f"âœ“ Data prepared: News {len(X_news_train)}/{len(X_news_test)}, Reddit {len(X_reddit_train)}/{len(X_reddit_test)}")
+print(f"Data prepared: News {len(X_news_train)}/{len(X_news_test)}, Reddit {len(X_reddit_train)}/{len(X_reddit_test)}")
 ```
 
 ### Step 8.2: Train Models
@@ -724,7 +698,7 @@ xgb_model = GridSearchCV(
 )
 xgb_model.fit(X_news_train, y_news_train)
 
-print("âœ“ Google News models trained")
+print("Google News models trained")
 
 lr_reddit = GridSearchCV(LogisticRegression(solver='lbfgs', random_state=42),
                          {'C': [0.01, 0.1, 1.0], 'max_iter': [1000]}, cv=5, scoring='f1')
@@ -740,9 +714,8 @@ xgb_reddit = GridSearchCV(xgb.XGBClassifier(random_state=42, use_label_encoder=F
                           cv=5, scoring='f1')
 xgb_reddit.fit(X_reddit_train, y_reddit_train)
 
-print("âœ“ Reddit models trained")
+print("Reddit models trained")
 
-# Save models
 import pickle
 pickle.dump(xgb_model, open('models/xgboost_news_model.pkl', 'wb'))
 pickle.dump(xgb_reddit, open('models/xgboost_reddit_model.pkl', 'wb'))
@@ -778,7 +751,6 @@ def evaluate_model(model, X_test, y_test, model_name, scaler=None):
     print(f"\n{model_name}:")
     print(f"  Accuracy: {accuracy:.4f}, Precision: {precision:.4f}, Recall: {recall:.4f}")
     print(f"  F1: {f1:.4f}, AUC: {auc:.4f}")
-    print(f"  Confusion Matrix:\n{cm}")
     
     return {'accuracy': accuracy, 'precision': precision, 'recall': recall, 'f1': f1, 'auc': auc}
 
@@ -791,18 +763,6 @@ print("\nREDDIT:")
 reddit_lr = evaluate_model(lr_reddit, X_reddit_test, y_reddit_test, "Logistic Regression", scaler_reddit)
 reddit_rf = evaluate_model(rf_reddit, X_reddit_test, y_reddit_test, "Random Forest")
 reddit_xgb = evaluate_model(xgb_reddit, X_reddit_test, y_reddit_test, "XGBoost")
-
-# Create comparison table
-results_comparison = pd.DataFrame({
-    'Model': ['Logistic Regression', 'Random Forest', 'XGBoost'],
-    'News Accuracy': [news_lr['accuracy'], news_rf['accuracy'], news_xgb['accuracy']],
-    'News F1': [news_lr['f1'], news_rf['f1'], news_xgb['f1']],
-    'Reddit Accuracy': [reddit_lr['accuracy'], reddit_rf['accuracy'], reddit_xgb['accuracy']],
-    'Reddit F1': [reddit_lr['f1'], reddit_rf['f1'], reddit_xgb['f1']]
-})
-
-print("\n\nMODEL COMPARISON:")
-print(results_comparison.to_string(index=False))
 ```
 
 ---
@@ -865,8 +825,8 @@ final_value_news, portfolio_values_news, trades_news = run_trading_strategy(
     scaler=scaler_news
 )
 
-print(f"âœ“ Final: ${final_value_news:.2f}, Return: {((final_value_news - 10000) / 10000) * 100:.2f}%")
-print(f"  Total trades: {len(trades_news)}")
+print(f"Final: ${final_value_news:.2f}, Return: {((final_value_news - 10000) / 10000) * 100:.2f}%")
+print(f"Total trades: {len(trades_news)}")
 
 print("\nReddit Trading...")
 final_value_reddit, portfolio_values_reddit, trades_reddit = run_trading_strategy(
@@ -875,8 +835,8 @@ final_value_reddit, portfolio_values_reddit, trades_reddit = run_trading_strateg
     scaler=scaler_reddit
 )
 
-print(f"âœ“ Final: ${final_value_reddit:.2f}, Return: {((final_value_reddit - 10000) / 10000) * 100:.2f}%")
-print(f"  Total trades: {len(trades_reddit)}")
+print(f"Final: ${final_value_reddit:.2f}, Return: {((final_value_reddit - 10000) / 10000) * 100:.2f}%")
+print(f"Total trades: {len(trades_reddit)}")
 ```
 
 ---
@@ -913,109 +873,64 @@ reddit_bh = (reddit_data['close'].iloc[-1] / reddit_data['close'].iloc[0] - 1) *
 
 print("\nGOOGLE NEWS:")
 print(f"  Strategy: {news_metrics['total_return']:.2f}% | Buy-Hold: {news_bh:.2f}%")
-print(f"  Underperformance: {news_metrics['total_return'] - news_bh:.2f}%")
 print(f"  Max Drawdown: {news_metrics['max_drawdown']:.2f}% | Sharpe: {news_metrics['sharpe_ratio']:.2f}")
 print(f"  Win Rate: {news_metrics['win_rate']:.1f}%")
 
 print("\nREDDIT:")
 print(f"  Strategy: {reddit_metrics['total_return']:.2f}% | Buy-Hold: {reddit_bh:.2f}%")
-print(f"  Underperformance: {reddit_metrics['total_return'] - reddit_bh:.2f}%")
 print(f"  Max Drawdown: {reddit_metrics['max_drawdown']:.2f}% | Sharpe: {reddit_metrics['sharpe_ratio']:.2f}")
 print(f"  Win Rate: {reddit_metrics['win_rate']:.1f}%")
-
-# Visualize results
-import matplotlib.pyplot as plt
-
-fig, axes = plt.subplots(2, 2, figsize=(16, 10))
-
-axes[0, 0].plot(portfolio_values_news, linewidth=2, color='steelblue')
-axes[0, 0].axhline(y=10000, color='gray', linestyle='--')
-axes[0, 0].set_title('Google News: Portfolio Value Over Time', fontweight='bold')
-axes[0, 0].set_ylabel('Portfolio Value')
-axes[0, 0].grid(alpha=0.3)
-
-axes[0, 1].plot(portfolio_values_reddit, linewidth=2, color='darkorange')
-axes[0, 1].axhline(y=10000, color='gray', linestyle='--')
-axes[0, 1].set_title('Reddit: Portfolio Value Over Time', fontweight='bold')
-axes[0, 1].set_ylabel('Portfolio Value')
-axes[0, 1].grid(alpha=0.3)
-
-metrics_names = ['Return (%)', 'Max Drawdown (%)', 'Win Rate (%)', 'Sharpe Ratio']
-news_metrics_values = [
-    news_metrics['total_return'],
-    abs(news_metrics['max_drawdown']),
-    news_metrics['win_rate'],
-    news_metrics['sharpe_ratio'] * 10
-]
-
-axes[1, 0].bar(metrics_names, news_metrics_values, color=['green' if v > 0 else 'red' for v in news_metrics_values])
-axes[1, 0].set_title('Google News: Trading Metrics', fontweight='bold')
-axes[1, 0].grid(alpha=0.3, axis='y')
-
-reddit_metrics_values = [
-    reddit_metrics['total_return'],
-    abs(reddit_metrics['max_drawdown']),
-    reddit_metrics['win_rate'],
-    reddit_metrics['sharpe_ratio'] * 10
-]
-
-axes[1, 1].bar(metrics_names, reddit_metrics_values, color=['green' if v > 0 else 'red' for v in reddit_metrics_values])
-axes[1, 1].set_title('Reddit: Trading Metrics', fontweight='bold')
-axes[1, 1].grid(alpha=0.3, axis='y')
-
-plt.tight_layout()
-plt.savefig('results/trading_simulation_results.png', dpi=150)
-print("\nâœ“ Results visualization saved")
 ```
 
 ---
 
 ## 12. Troubleshooting
 
-### Common Issues & Solutions
+### API Rate Limits
 
-**Issue 1: API Rate Limits**
 ```python
 import time
-time.sleep(1)  # Add delays between API calls
+time.sleep(1)
 ```
 
-**Issue 2: Memory Issues with Large Datasets**
+### Memory Issues
+
 ```python
 chunk_size = 10000
 for i in range(0, len(df), chunk_size):
     chunk = df.iloc[i:i+chunk_size]
-    # Process chunk
 ```
 
-**Issue 3: NaN Values in Features**
+### NaN Values
+
 ```python
-df = df.fillna(0)  # Fill with zero
-# OR
-df = df.dropna()  # Drop NaN rows
+df = df.fillna(0)
+df = df.dropna()
 ```
 
-**Issue 4: Model Not Converging**
+### Model Convergence
+
 ```python
 model = LogisticRegression(max_iter=1000, solver='lbfgs')
 model_xgb = xgb.XGBClassifier(learning_rate=0.01, n_estimators=500)
 ```
 
-**Issue 5: Data Leakage in Time Series**
+### Data Leakage in Time Series
+
 ```python
-# DO NOT shuffle time series data
 train_size = int(len(df) * 0.8)
 train_df = df[:train_size]
 test_df = df[train_size:]
 ```
 
-**Issue 6: Connection Timeouts**
+### Connection Timeouts
+
 ```python
-import requests
 response = requests.get(url, params=params, timeout=30)
 ```
 
-**Issue 7: Infinite Values in Data**
+### Infinite Values
+
 ```python
 df = df.replace([np.inf, -np.inf], np.nan).fillna(0)
 ```
@@ -1024,34 +939,12 @@ df = df.replace([np.inf, -np.inf], np.nan).fillna(0)
 
 ## Summary
 
-This guide covers the entire OasisCoin pipeline:
+This guide covers the entire OasisCoin pipeline from start to finish.
 
-âœ… Environment setup and dependency installation  
-âœ… Data collection (49,758 total records)  
-âœ… Text preprocessing and tokenization  
-âœ… Exploratory data analysis  
-âœ… Sentiment analysis (TextBlob + VADER)  
-âœ… Topic modeling (LDA + NMF)  
-âœ… Feature engineering (77+ features)  
-âœ… Model training (3 models Ã— 2 sources)  
-âœ… Model evaluation and comparison  
-âœ… Trading simulation and backtesting  
-âœ… Results analysis and visualization  
-âœ… Troubleshooting common issues  
+Key Outputs:
+- data/processed/ - Preprocessed data
+- models/ - Trained models
+- results/ - Visualizations
 
-**Expected Runtime:** 3-4 hours on Google Colab GPU
+Expected Runtime: 3-4 hours on Google Colab GPU
 
-**Key Outputs:**
-- `data/processed/` - Preprocessed and engineered data
-- `models/` - Trained model artifacts
-- `results/` - Visualizations and metrics
-
-**Key Findings:**
-- Classification models: 57-60% accuracy
-- Trading returns: News 9.09%, Reddit 0.82%
-- Buy-and-hold returns: News 49.99%, Reddit 34.35%
-- Sentiment diversity predicts volatility (r=0.19-0.21, p<0.01)
-
----
-
-**Good luck with your presentation! ðŸš€**
