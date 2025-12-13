@@ -1,3 +1,5 @@
+# This is from the paper Deep Learning and NLP in Cryptocurrency Forecasting: Integrating Financial, Blockchain, and Social Media Data which was a Major inspiration for our Project 
+# Our project is under oasis_coin_final
 # Deep Learning and NLP in Cryptocurrency Forecasting: Integrating Financial, Blockchain, and Social Media Data
 
 This repository encompasses the code for the acquisition and processing of the data, exploratory data analysis, model training and evaluation as well as related utilities and documentation for the forecasting of cryptocurrency prices using various deep learning and natural language processing techniques.
