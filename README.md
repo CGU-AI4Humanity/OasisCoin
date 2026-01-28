@@ -1,7 +1,7 @@
 # OasisCoin: Complete Step-by-Step Implementation Guide
 
 **IST 332 Fall 2025 Final Project**  
-**Group 4 - Claremont Graduate University**
+**Nihaad Saleem, Prajwal Naik, Varsha Shety & Mahesh Balan - Claremont Graduate University**
 
 ---
 
